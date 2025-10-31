@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 
 // ✅ Correct frontend origin (no trailing slash)
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5000";
 
 // ✅ Middleware for CORS
 app.use(cors({
