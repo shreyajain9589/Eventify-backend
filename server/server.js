@@ -16,30 +16,44 @@ connectDb();
 const app = express();
 const server = http.createServer(app);
 
-// Socket.io setup
+// ✅ Correct frontend origin (no trailing slash)
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5000";
+
+// ✅ Middleware for CORS
+app.use(cors({
+  origin: CLIENT_URL,
+  credentials: true
+}));
+app.use(express.json());
+
+// ✅ Socket.io setup with CORS
 const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL || '*' }
+  cors: {
+    origin: CLIENT_URL,
+    methods: ["GET", "POST"],
+    credentials: true
+  }
 });
-app.use((req, res, next) => { req.io = io; next(); });
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 io.on('connection', (socket) => {
   console.log('socket connected', socket.id);
   socket.on('disconnect', () => console.log('socket disconnected', socket.id));
 });
 
-// Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
-app.use(express.json());
-
-// Routes
+// ✅ Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-// Basic route
+// ✅ Basic route
 app.get('/', (req, res) => res.send('Event booking API'));
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

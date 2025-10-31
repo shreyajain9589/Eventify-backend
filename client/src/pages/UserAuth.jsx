@@ -7,7 +7,6 @@ export default function UserAuth() {
   const [form, setForm] = useState({ name: '', email: '', password: '', mobile: '' });
   const navigate = useNavigate();
 
-  // Clear all fields on mount
   useEffect(() => {
     setForm({ name: '', email: '', password: '', mobile: '' });
   }, []);
@@ -18,25 +17,34 @@ export default function UserAuth() {
       if (isRegister) {
         await API.post('/auth/register', form);
         alert('Registration successful! Please login.');
-        setIsRegister(false);        // Switch to login
-        setForm({ name: '', email: '', password: '', mobile: '' }); // Clear fields
+        setIsRegister(false);
+        setForm({ name: '', email: '', password: '', mobile: '' });
       } else {
         const res = await API.post('/auth/login', { email: form.email, password: form.password });
+
+        // Prevent admin login via UserAuth
+        if (res.data.user.role === 'admin') {
+          alert('Admin cannot login here. Please use Admin Login.');
+          setForm({ ...form, password: '' });
+          return;
+        }
+
         localStorage.setItem('token', res.data.token);
+        localStorage.setItem('role', 'user');
         setAuthToken(res.data.token);
         alert('Login successful!');
-        setForm({ name: '', email: '', password: '', mobile: '' }); // Clear fields
-        navigate('/'); // redirect to home page
+        setForm({ name: '', email: '', password: '', mobile: '' });
+        navigate('/');
       }
     } catch (err) {
       alert('Error: ' + (err.response?.data?.message || err.message));
-      setForm({ ...form, password: '' }); // Clear password on error
+      setForm({ ...form, password: '' });
     }
   };
 
   const toggleForm = () => {
     setIsRegister(!isRegister);
-    setForm({ name: '', email: '', password: '', mobile: '' }); // Clear all fields when switching
+    setForm({ name: '', email: '', password: '', mobile: '' });
   };
 
   return (
@@ -67,7 +75,6 @@ export default function UserAuth() {
 
         <input
           type="email"
-          autoComplete="off"
           placeholder="Email"
           value={form.email}
           onChange={e => setForm({ ...form, email: e.target.value })}
@@ -76,7 +83,6 @@ export default function UserAuth() {
         />
         <input
           type="password"
-          autoComplete="new-password"
           placeholder="Password"
           value={form.password}
           onChange={e => setForm({ ...form, password: e.target.value })}
@@ -90,11 +96,7 @@ export default function UserAuth() {
 
         <p className="text-sm text-center">
           {isRegister ? 'Already have an account?' : 'Don’t have an account?'}
-          <button
-            type="button"
-            className="ml-1 text-indigo-600 underline"
-            onClick={toggleForm}
-          >
+          <button type="button" className="ml-1 text-indigo-600 underline" onClick={toggleForm}>
             {isRegister ? 'Login' : 'Register'}
           </button>
         </p>

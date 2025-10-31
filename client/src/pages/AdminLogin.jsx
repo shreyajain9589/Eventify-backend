@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import API, { setAuthToken } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
-  // Clear fields on page load
   useEffect(() => {
     setEmail('');
     setPassword('');
@@ -14,18 +15,20 @@ export default function AdminLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post('/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
+      // Call admin login endpoint
+      const res = await API.post('/auth/admin/login', { email, password });
+
+      // Save admin token
+      localStorage.setItem('adminToken', res.data.token);
+      localStorage.setItem('role', 'admin');
       setAuthToken(res.data.token);
 
-      // Clear fields on successful login
+      alert('Admin login successful!');
       setEmail('');
       setPassword('');
-
-      window.location.href = '/admin';
+      navigate('/admin'); // redirect to admin dashboard
     } catch (err) {
       alert('Login failed: ' + (err.response?.data?.message || err.message));
-      // Clear password on failed login
       setPassword('');
     }
   };
@@ -36,7 +39,6 @@ export default function AdminLogin() {
         <h2 className="text-xl font-semibold mb-4">Admin Login</h2>
         <input
           type="email"
-          autoComplete="off"
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
@@ -45,7 +47,6 @@ export default function AdminLogin() {
         />
         <input
           type="password"
-          autoComplete="new-password"
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}

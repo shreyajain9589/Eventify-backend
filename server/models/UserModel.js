@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
     password: { type: String, required: true },
-    role: { type: String, enum: ['admin','user'], default: 'admin' } // keep admin for gating
+    role: { type: String, enum: ['admin','user'], default: 'user' } // keep admin for gating
 }, { timestamps: true});
 
 const User = mongoose.model('User', userSchema);
