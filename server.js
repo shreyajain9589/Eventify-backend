@@ -16,16 +16,14 @@ connectDb();
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigins = [
-  'https://eventify-frontend-r9pd.vercel.app',
-  'https://eventify-frontend-r9pd-git-main-shreya-jains-projects-1cc47f40.vercel.app'
-];
+// ✅ Correct frontend origin (no trailing slash)
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
+// ✅ Middleware for CORS
 app.use(cors({
-  origin: allowedOrigins,
+  origin: CLIENT_URL,
   credentials: true
 }));
-
 app.use(express.json());
 
 // ✅ Socket.io setup with CORS
