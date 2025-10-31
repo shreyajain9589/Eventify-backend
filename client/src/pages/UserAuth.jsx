@@ -1,0 +1,104 @@
+import React, { useState, useEffect } from 'react';
+import API, { setAuthToken } from '../services/api';
+import { useNavigate } from 'react-router-dom';
+
+export default function UserAuth() {
+  const [isRegister, setIsRegister] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', password: '', mobile: '' });
+  const navigate = useNavigate();
+
+  // Clear all fields on mount
+  useEffect(() => {
+    setForm({ name: '', email: '', password: '', mobile: '' });
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isRegister) {
+        await API.post('/auth/register', form);
+        alert('Registration successful! Please login.');
+        setIsRegister(false);        // Switch to login
+        setForm({ name: '', email: '', password: '', mobile: '' }); // Clear fields
+      } else {
+        const res = await API.post('/auth/login', { email: form.email, password: form.password });
+        localStorage.setItem('token', res.data.token);
+        setAuthToken(res.data.token);
+        alert('Login successful!');
+        setForm({ name: '', email: '', password: '', mobile: '' }); // Clear fields
+        navigate('/'); // redirect to home page
+      }
+    } catch (err) {
+      alert('Error: ' + (err.response?.data?.message || err.message));
+      setForm({ ...form, password: '' }); // Clear password on error
+    }
+  };
+
+  const toggleForm = () => {
+    setIsRegister(!isRegister);
+    setForm({ name: '', email: '', password: '', mobile: '' }); // Clear all fields when switching
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow w-full max-w-sm">
+        <h2 className="text-xl font-semibold mb-4">{isRegister ? 'Register' : 'Login'}</h2>
+
+        {isRegister && (
+          <>
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              className="border p-2 w-full mb-3 rounded"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Mobile Number"
+              value={form.mobile}
+              onChange={e => setForm({ ...form, mobile: e.target.value })}
+              className="border p-2 w-full mb-3 rounded"
+              required
+            />
+          </>
+        )}
+
+        <input
+          type="email"
+          autoComplete="off"
+          placeholder="Email"
+          value={form.email}
+          onChange={e => setForm({ ...form, email: e.target.value })}
+          className="border p-2 w-full mb-3 rounded"
+          required
+        />
+        <input
+          type="password"
+          autoComplete="new-password"
+          placeholder="Password"
+          value={form.password}
+          onChange={e => setForm({ ...form, password: e.target.value })}
+          className="border p-2 w-full mb-3 rounded"
+          required
+        />
+
+        <button className="bg-indigo-600 text-white px-4 py-2 rounded w-full mb-3">
+          {isRegister ? 'Register' : 'Login'}
+        </button>
+
+        <p className="text-sm text-center">
+          {isRegister ? 'Already have an account?' : 'Don’t have an account?'}
+          <button
+            type="button"
+            className="ml-1 text-indigo-600 underline"
+            onClick={toggleForm}
+          >
+            {isRegister ? 'Login' : 'Register'}
+          </button>
+        </p>
+      </form>
+    </div>
+  );
+}
